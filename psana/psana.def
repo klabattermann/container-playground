@@ -1,0 +1,27 @@
+Bootstrap: docker
+From: rockylinux:8
+
+
+%files
+    ana.yaml /root/ana.yaml
+    entrypoint.sh /opt/entrypoint.sh
+
+%post
+    yum -y install wget openssh-clients
+    cd /root
+    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+    chmod +x Miniconda3-latest-Linux-x86_64.sh
+    /bin/bash Miniconda3-latest-Linux-x86_64.sh -b -p /opt/anaconda
+    rm Miniconda3-latest-Linux-x86_64.sh
+
+    . /opt/anaconda/etc/profile.d/conda.sh
+    conda update -c conda-forge conda
+    conda create -n ana --file ana.yaml
+    conda install -y -n ana xrootd
+    conda clean -afy
+
+    conda activate ana
+    git clone https://github.com/slac-lcls/lcls2.git /opt/lcls2
+    cd /opt/lcls2
+    TESTRELDIR=/opt/anaconda/envs/ana ./build_all.sh -d -m
+
